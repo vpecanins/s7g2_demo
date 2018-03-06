@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<synergyModuleDescription>
+	<config id="config.framework.sf_wifi_nsal_nx_v2" path="ssp_cfg/framework/sf_wifi_nsal_nx_cfg.h" version="0">
+		<property default="config.framework.sf_wifi_nsal_nx_v2.param_checking_enable.bsp" display="Parameter Checking" id="module.framework.sf_wifi_nsal_nx_v2.param_checking_enable">
+			<option display="Default (BSP)" id="config.framework.sf_wifi_nsal_nx_v2.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)"/>
+			<option display="Enabled" id="module.framework.sf_wifi_nsal_nx_v2.param_checking_enable.enabled" value="(1)"/>
+			<option display="Disabled" id="module.framework.sf_wifi_nsal_nx_v2.param_checking_enable.disabled" value="(0)"/>
+		</property>
+		<content>
+		#ifndef SF_WIFI_NSAL_NX_CFG_PARAM_CHECKING_ENABLE
+		#define SF_WIFI_NSAL_NX_CFG_PARAM_CHECKING_ENABLE ${module.framework.sf_wifi_nsal_nx_v2.param_checking_enable}
+		#endif
+		</content>
+	</config>
+	<module config="config.framework.sf_wifi_nsal_nx_v2" display="Framework|Networking|Wi-Fi|${module.framework.sf_el_nx.name} NetX Port using Wi-Fi Framework on sf_wifi_nsal_nx" id="module.framework.sf_wifi_nsal_nx_v2" version="1">
+		<constraint display="Module instances must have unique names">
+			"${interface.framework.sf_el_nx.${module.framework.sf_el_nx.name}}" === "1"
+		</constraint>
+		<requires interface="_rtos" />
+		<requires id="module.framework.sf_wifi_nsal_nx_v2.requires.sf_wifi_v2" interface="interface.framework.sf_wifi_v2" display="Add Wi-Fi Framework Device Driver" >
+			<override property="module.framework.sf_wifi_v2.p_callback" value= "NULL"/>
+		</requires>
+		<provides interface="interface.framework.sf_wifi_nsal_v2" />
+        <provides interface="interface.framework.sf_el_nx" />
+		<provides interface="interface.framework.sf_el_nx_on_sf_wifi_nsal_v2" />
+		<provides interface="interface.framework.sf_el_nx.${module.framework.sf_el_nx.name}" />
+		<property default="g_sf_el_nx${_instance}" display="Name (Must be a valid C Symbol)" id="module.framework.sf_el_nx.name" >
+            <constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_el_nx.name}")</constraint>
+        </property>
+		<header>
+		/** NetX driver entry function. */
+		VOID ${module.framework.sf_el_nx.name}(NX_IP_DRIVER * p_driver);
+		</header>
+	<includes>#include &quot;nx_api.h&quot;
+	#include &quot;sf_wifi_nsal_nx.h&quot;</includes>
+	<declarations>
+	/** NetX driver entry function. We will take what NetX gives and add on WiFi framework instance. */
+	VOID ${module.framework.sf_el_nx.name}(NX_IP_DRIVER * p_driver)
+	{
+		nsal_netx_driver(p_driver, &amp;${module.framework.sf_wifi_nsal_nx_v2.requires.sf_wifi_v2::module.framework.sf_wifi_v2.name}, (sf_wifi_nsal_cfg_t *)&amp;${module.framework.sf_wifi_nsal_nx_v2.requires.sf_wifi_v2::module.framework.sf_wifi_v2.name}_nsal_cfg);
+	}
+	</declarations>
+	</module>
+</synergyModuleDescription>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<synergyModuleDescription>
+  <config id="config.board.aris7" path="ssp_cfg/bsp/bsp_board_cfg.h" version="0">
+    <content>#include "../../../synergy/board/aris7/bsp.h"</content>
+  </config>
+  <board config="config.board.aris7" device="R7FS7G27H3A01CFC" display="aris7" id="board.aris7" version="0"/>
+</synergyModuleDescription>

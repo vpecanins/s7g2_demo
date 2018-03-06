@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<synergyModuleDescription>
+	<config id="config.framework.sf_wifi_winc1500_v121" path="ssp_cfg/framework/sf_wifi_winc1500_cfg.h" version="0">
+		<property default="config.framework.sf_wifi_v2.param_checking_enable.bsp" display="Parameter Checking" id="config.framework.sf_wifi_v2.param_checking_enable">
+			<option display="Default (BSP)" id="config.framework.sf_wifi_v2.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)"/>
+			<option display="Enabled" id="config.framework.sf_wifi_v2.param_checking_enable.enabled" value="(1)"/>
+			<option display="Disabled" id="config.framework.sf_wifi_v2.param_checking_enable.disabled" value="(0)"/>
+		</property>
+		<content>#define SF_WIFI_WINC1500_CFG_PARAM_CHECKING_ENABLE ${config.framework.sf_wifi_v2.param_checking_enable}
+		</content>
+	</config>
+	<module config="config.framework.sf_wifi_winc1500_v121" display="Framework|Networking|Wi-Fi|${module.framework.sf_wifi_v2.name} ATWINC1500 Wi-Fi Device Driver on sf_wifi_winc1500" id="module.framework.sf_wifi_winc1500_v121" version="1">
+		<constraint display="Module instances must have unique names">
+			"${interface.framework.sf_wifi_v2.${module.framework.sf_wifi_v2.name}}" === "1"
+		</constraint>
+		<requires interface="_rtos" />
+		<requires id="module.framework.sf_wifi_v2.requires.sf_spi_v2" interface="interface.framework.sf_spi_v2" display="Add SPI Framework Device" >
+			<override property="module.framework.sf_spi_v2.chipselectactive" value= "module.framework.sf_spi_v2.chipselectactive.low"/>
+			<override property="module.framework.sf_spi_v2.clk_polarity" value= "module.framework.sf_spi_v2.clk_polarity.clk_polarity_low"/>
+			<override property="module.framework.sf_spi_v2.clk_phase" value= "module.framework.sf_spi_v2.clk_polarity.clk_phase.clk_phase_edge_odd"/>
+		</requires>
+		<requires id="module.framework.sf_wifi_v2.requires.external_irq" interface="interface.driver.external_irq" display="Add ICU Driver">
+			<override property="module.driver.external_irq.interrupt_enable" value= "module.driver.external_irq.interrupt_enable.true"/>
+			<override property="module.driver.external_irq.filter_enable" value= "module.driver.external_irq.filter_enable.false"/>
+			<override property="module.driver.external_irq.p_callback" value= "SF_WINC1500_interruptISR"/>
+			<override property="module.driver.external_irq.pclk_div" value= "module.driver.external_irq.pclk_div.pclk_div_by_64"/>
+			<override property="module.driver.external_irq.trigger" value= "module.driver.external_irq.trigger.trig_falling"/>
+		</requires>
+		<provides interface="interface.framework.sf_wifi_v2" />
+		<provides interface="interface.framework.sf_wifi_winc1500_v121"/>
+		<provides interface="interface.framework.sf_wifi_v2.${module.framework.sf_wifi_v2.name}" />
+		<provides interface="interface.framework.sf_wifi_winc1500_v121.${module.framework.sf_wifi_v2.name}" />
+		<property default="g_sf_wifi${_instance}" display="Name" id="module.framework.sf_wifi_v2.name">
+			<constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_wifi_v2.name}")</constraint>
+		</property>
+		<property default="module.framework.sf_wifi_v2.tx_power.9dbm" display="Transmit (Tx) Power" id="module.framework.sf_wifi_v2.tx_power">
+			<option display="3 dBm" id="module.framework.sf_wifi_v2.tx_power.3dbm" value="3"/>
+			<option display="6 dBm" id="module.framework.sf_wifi_v2.tx_power.6dbm" value="6"/>
+			<option display="9 dBm" id="module.framework.sf_wifi_v2.tx_power.9dbm" value="9"/>
+		</property>
+		<property default="0" display="Delivery Traffic Indication Message (DTIM) Interval" id="module.framework.sf_wifi_v2.dtim">
+			<constraint display="Value must be in range 1 to 255">
+				testInteger("${module.framework.sf_wifi_v2.dtim}") &amp;&amp; ("${module.framework.sf_wifi_v2.dtim}" &gt; 0)
+				&amp;&amp; ("${module.framework.sf_wifi_v2.dtim}" &lt; 256)
+			</constraint>
+		</property>
+		<property default="module.framework.sf_wifi_v2.ssid_broadcast.enabled" display="Broadcast SSID (AP mode only)" id="module.framework.sf_wifi_v2.ssid_broadcast">
+			<option display="Disabled" id="module.framework.sf_wifi_v2.ssid_broadcast.disabled" value="SF_WIFI_SSID_BROADCAST_DISABLE"/>
+			<option display="Enabled" id="module.framework.sf_wifi_v2.ssid_broadcast.enabled" value="SF_WIFI_SSID_BROADCAST_ENABLE"/>
+		</property>
+		<property default="192,168,0,1" display="DHCP IPv4 Address (use commas for separation - AP mode only)" id="module.framework.sf_wifi_v2.dhcp_address">
+			<constraint display="Must be valid IP address separated by commas">"${module.framework.sf_wifi_v2.dhcp_address}".split(",").length == 4</constraint>
+		</property>
+		<property default="IOPORT_PORT_06_PIN_03" display="Reset Pin" id="module.framework.sf_wifi_v2.pin_reset">
+			<constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_wifi_v2.pin_reset}")</constraint>
+		</property>
+		<property default="IOPORT_PORT_06_PIN_04" display="Chip Enable Pin" id="module.framework.sf_wifi_v2.pin_enable">
+			<constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_wifi_v2.pin_enable}")</constraint>
+		</property>
+		<property default="5" display="Driver Task Thread Priority (Modifying Task Thread Priority may cause Driver to malfunction)." id="module.framework.sf_wifi_v2.driver_task_priority">
+			<constraint display="Numerical priority of thread. Legal values range from 0 through (TX_MAX_PRIORITY-1), where a value of 0 represents the highest priority">
+				testInteger("${module.framework.sf_wifi_v2.driver_task_priority}")
+			</constraint>
+		</property>
+		<property default="4096" display="Driver Task Thread Stack Size (Modifying Task Thread Priority may cause Driver to malfunction)." id="module.framework.sf_wifi_v2.driver_task_stack_size">
+			<constraint display="Stack size of thread. Legal values must be valid integers.">
+				testInteger("${module.framework.sf_wifi_v2.driver_task_stack_size}")
+			</constraint>
+		</property>
+		<property id="module.framework.sf_wifi_v2.p_callback" display="Callback" default="NULL">
+			<constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_wifi_v2.p_callback}")</constraint>
+		</property>
+		<header>
+		/** sf_wifi on WINC1500 Wi-Fi Driver instance */
+		extern sf_wifi_instance_t ${module.framework.sf_wifi_v2.name};
+		#ifdef ${module.framework.sf_wifi_v2.p_callback}
+		#define SF_WIFI_ON_WIFI_WINC1500_CALLBACK_USED_${module.framework.sf_wifi_v2.name} (0)
+		#else
+		#define SF_WIFI_ON_WIFI_WINC1500_CALLBACK_USED_${module.framework.sf_wifi_v2.name} (1)
+		#endif
+		#if SF_WIFI_ON_WIFI_WINC1500_CALLBACK_USED_${module.framework.sf_wifi_v2.name}
+		/** Declaration of user callback function. This function MUST be defined in the user application.*/
+		void ${module.framework.sf_wifi_v2.p_callback}(sf_wifi_callback_args_t * p_args);
+		#endif
+		</header>
+		<includes>
+		#include &quot;sf_wifi_api.h&quot;
+		#include &quot;sf_wifi_winc1500.h&quot;
+		</includes>
+		<declarations>
+
+static const sf_wifi_winc1500_cfg_t ${module.framework.sf_wifi_v2.name}_on_winc1500_cfg =
+{
+	.p_sf_spi					= &amp;${module.framework.sf_wifi_v2.requires.sf_spi_v2::module.framework.sf_spi_v2.name},
+	.p_irq						= &amp;${module.framework.sf_wifi_v2.requires.external_irq::module.driver.external_irq.name},
+	.pin_reset					= ${module.framework.sf_wifi_v2.pin_reset},
+	.pin_enable					= ${module.framework.sf_wifi_v2.pin_enable},
+	.internal_thread_priority	= ${module.framework.sf_wifi_v2.driver_task_priority},
+	.internal_thread_stack_size	= ${module.framework.sf_wifi_v2.driver_task_stack_size},
+	.dhcp_address				= IP_ADDRESS(${module.framework.sf_wifi_v2.dhcp_address}),
+};
+
+static sf_wifi_ctrl_t ${module.framework.sf_wifi_v2.name}_ctrl;
+static const sf_wifi_cfg_t ${module.framework.sf_wifi_v2.name}_cfg =
+{
+	.mac_addr					 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+	.hw_mode					 = SF_WIFI_INTERFACE_HW_MODE_11N,
+	.tx_power					 = ${module.framework.sf_wifi_v2.tx_power},
+	.rts						 = SF_WIFI_RTS_DISABLE,
+	.fragmentation				 = 0,
+	.dtim						 = ${module.framework.sf_wifi_v2.dtim},
+	.high_throughput			 = SF_WIFI_HIGH_THROUGHPUT_DISABLE,
+	.preamble					 = SF_WIFI_PREAMBLE_LONG,
+	.wmm						 = SF_WIFI_WMM_DISABLE,
+	.max_stations				 = 0,
+	.ssid_broadcast				 = ${module.framework.sf_wifi_v2.ssid_broadcast},
+	.access_control				 = SF_WIFI_ACCESS_CONTROL_DISABLE,
+	.beacon						 = 0,
+	.station_inactivity_timeout	 = 0,
+	.wds						 = SF_WIFI_WDS_DISABLE,
+	.req_high_throughput		 = SF_WIFI_MANDATORY_HIGH_THROUGHPUT_DISABLE,
+	.p_buffer_pool_rx			 = NULL,
+	.p_callback					 = ${module.framework.sf_wifi_v2.p_callback},
+	.p_context					 = NULL,
+	.p_extend					 = &amp;${module.framework.sf_wifi_v2.name}_on_winc1500_cfg,
+};
+
+/* Instance structure to use this module. */
+sf_wifi_instance_t ${module.framework.sf_wifi_v2.name} = 
+{
+	.p_ctrl		   = &amp;${module.framework.sf_wifi_v2.name}_ctrl,
+	.p_cfg		   = &amp;${module.framework.sf_wifi_v2.name}_cfg,
+	.p_api		   = &amp;g_sf_wifi_on_sf_wifi_winc1500
+};
+/** NSAL Zero copy support configuration */
+const sf_wifi_nsal_cfg_t ${module.framework.sf_wifi_v2.name}_nsal_cfg = 
+{
+	.rx_zero_copy = SF_WIFI_NSAL_ZERO_COPY_DISABLE,
+	.tx_zero_copy = SF_WIFI_NSAL_ZERO_COPY_DISABLE,
+	.p_tx_packet_buffer = NULL,
+};
+
+</declarations>
+	<init>
+		ssp_err_t ssp_err_${module.framework.sf_wifi_v2.name};
+		ssp_err_${module.framework.sf_wifi_v2.name} = ${module.framework.sf_wifi_v2.name}.p_api->open(${module.framework.sf_wifi_v2.name}.p_ctrl, ${module.framework.sf_wifi_v2.name}.p_cfg);
+		if (SSP_SUCCESS != ssp_err_${module.framework.sf_wifi_v2.name})
+		{
+			while (1);
+		}
+		</init>
+	</module>
+</synergyModuleDescription>

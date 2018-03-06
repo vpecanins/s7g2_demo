@@ -1,0 +1,375 @@
+/***********************************************************************************************************************
+ * Copyright [2015] Renesas Electronics Corporation and/or its licensors. All Rights Reserved.
+ *
+ * The contents of this file (the "contents") are proprietary and confidential to Renesas Electronics Corporation
+ * and/or its licensors ("Renesas") and subject to statutory and contractual protections.
+ *
+ * Unless otherwise expressly agreed in writing between Renesas and you: 1) you may not use, copy, modify, distribute,
+ * display, or perform the contents; 2) you may not use any name or mark of Renesas for advertising or publicity
+ * purposes or in connection with your use of the contents; 3) RENESAS MAKES NO WARRANTY OR REPRESENTATIONS ABOUT THE
+ * SUITABILITY OF THE CONTENTS FOR ANY PURPOSE; THE CONTENTS ARE PROVIDED "AS IS" WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+ * NON-INFRINGEMENT; AND 4) RENESAS SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, OR CONSEQUENTIAL DAMAGES,
+ * INCLUDING DAMAGES RESULTING FROM LOSS OF USE, DATA, OR PROJECTS, WHETHER IN AN ACTION OF CONTRACT OR TORT, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE CONTENTS. Third-party contents included in this file may
+ * be subject to different terms.
+ **********************************************************************************************************************/
+/**********************************************************************************************************************
+* File Name    : r_glcd.dox
+* Description  : Extra documentation for GLCD module
+***********************************************************************************************************************
+* History : DD.MM.YYYY Version Description
+*           22.03.2015 1.00    Initial Release.
+***********************************************************************************************************************/
+
+/***********************************************************************************************************************
+Functions
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     ssp_err_t R_GLCD_Open  (display_ctrl_t * const p_ctrl, display_cfg_t const * const p_cfg)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Creates a variable for the control block (You can use the project generater on ISDE to generate this configuration)
+    display_ctrl_t   g_display;
+
+    // Creates an extented configuration for display interface (You can use the project generater on ISDE to generate this configuration)
+    glcd_cfg_t g_display_extend_cfg = 
+    {
+        .tcon_hsync             = GLCD_TCON_PIN_0,              // Use LCD_TCON0 as Hsync signal
+        .tcon_vsync             = GLCD_TCON_PIN_1,              // Use LCD_TCON1 as Vsync signal
+        .tcon_de                = GLCD_TCON_PIN_2,              // Use LCD_TCON2 as DE signal
+        .correction_proc_order  = GLCD_CORRECTION_PROC_ORDER_BRIGHTNESS_CONTRAST2GAMMA, // Define the color prosessing order
+        .clksrc                 = GLCD_CLK_SRC_INTERNAL,        // Use peripheral clock as the clock source for the pixel clock
+        .clock_div_ratio        = GLCD_PANEL_CLK_DIVISOR_2,     // Divide the clock source by two
+        .dithering_mode         = GLCD_DITHERING_MODE_TRUNCATE, // Select the dither processing method
+        .dithering_pattern_A    = GLCD_DITHERING_PATTERN_11,    // Select the patten used in dither processing if you select 2x2 Pattern mode
+        .dithering_pattern_B    = GLCD_DITHERING_PATTERN_11,
+        .dithering_pattern_C    = GLCD_DITHERING_PATTERN_11,
+        .dithering_pattern_D    = GLCD_DITHERING_PATTERN_11 
+    };
+
+    // Creates a configuration for the gamma correction (You can use the project generater on ISDE to generate this configuration)
+    display_gamma_correction_t g_display_gamma_cfg = 
+    {
+        .r = 
+        {
+            .enable    = true,                                  // Non correction in red color
+        },
+        .g = 
+        {
+            .enable    = false,                                 // Non correction in green color
+        },
+        .b = 
+        {
+            .enable    = true,                                  // Do correction in blue color
+            .gain      = { 1152, 1152, 1152, 1088, 1088, 1088, 1024, 1024, 1024, 1024, 960, 960, 960, 960, 896, 896 },
+            .threshold = { 0, 64, 128, 192, 256, 320, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960}
+        }
+    };
+
+    // Creates a configuration structure (You can use the project generater on ISDE to generate this configuration)
+    display_cfg_t display_cfg =
+    {
+        .input[0] =                                             // Input1(Graphics1 plane) configuration
+        {
+            .p_base  = (uint32_t *)&g_display_fb_background[0], // Base address, if not used input1 layer, set this NULL
+            .hsize   = 800,                                     // Horizontal pixel size
+            .vsize   = 480,                                     // Vertical pixel size
+            .hstride = 800,                                     // Memory stride in a horizontal line(not bytes but pixels)
+            .format  = DISPLAY_IN_FORMAT_16BITS_RGB565,         // RGB565 color format
+            .line_descending_enable = false,                    // Lines ascend in the image from the top to the bottom
+            .lines_repeat_enable    = false,                    // Non-line repeating mode
+            .lines_repeat_times     = 0                         // Don't care in non-line repeating mode
+        },
+        .input[1] =                                             // Input2(Graphics2 plane) configuration
+        {
+            .p_base = NULL                                      // Input2 is not used
+        },
+        .layer[0] =                                             // Input1(Graphics1 plane) layer configuration
+        {
+            .coordinate =
+            {
+                .x = 20,                                        // (x,y)=(20,30)pixels offset against the background screen
+                .y = 30
+            },
+            .bg_color =
+            {
+                .byte =
+                {
+                    .a = 255,                                   // Color level(A,R,G,B) on the background area in the grahics plane
+                    .r = 0,
+                    .g = 0,
+                    .b = 0
+                }
+            },
+            .fade_control = DISPLAY_FADE_CONTROL_NONE,          // No fading control
+            .fade_speed = 0                                     // Fading speed.
+        },
+        // Omit Input2(Graphics2 plane) layer configuration
+        .output =                                               // Output configuration
+        {
+            .htiming = 
+            {
+                .total_cyc     = 1024,                          // Total 1024cycles in a horizontal line
+                .display_cyc   = 800,                           // Active video cycles are 800cycles in a horizontal line
+                .back_porch    = 46,                            // Horizontal back poach is 20cycles
+                .sync_width    = 20,                            // Hsync cycles are 20cycles
+                .sync_polarity = DISPLAY_SIGNAL_POLARITY_LOACTIVE   // Hsync is the low active signal
+            },
+            .vtiming = 
+            {
+                .total_cyc     = 525,                           // Total 525lines in a frame
+                .display_cyc   = 480,                           // Active video lines are 480ines in a frame
+                .back_porch    = 23,                            // Vertical back poach is 23lines
+                .sync_width    = 10,                            // Vsync lines are 10cycles
+                .sync_polarity = DISPLAY_SIGNAL_POLARITY_LOACTIVE   // Vsync is the low active signal
+            },
+            .format = DISPLAY_OUT_FORMAT_24BITS_RGB888,         // Panel has RGB24bit I/F
+            .endian = DISPLAY_ENDIAN_LITTLE,                    // LCDOUT[23:16]=R[7:0],LCDOUT[15:8]=G[7:0],,LCDOUT[7:0]=B[7:0]
+            .color_order = DISPLAY_COLOR_ORDER_RGB,
+            .data_enable_polarity = DISPLAY_SIGNAL_POLARITY_HIACTIVE,   // DE is the high active signal
+            .sync_edge = DISPLAY_SIGNAL_SYNC_EDGE_FALLING,      // Syncing at falling edge
+            .bg_color = {
+                .byte = 
+                {
+                    .a = 255,                                   // Color level (A,R,G,B) on the background screen
+                    .r = 0,
+                    .g = 0,
+                    .b = 0
+                }
+            },
+            .brightness = 
+            {
+                .enable = false,                                // Brightness setting disable
+                .r = 512,
+                .g = 512,
+                .b = 512
+            },
+            .contrast = 
+            {
+                .enable = false,                                // Constrast setting disable
+                .r = 128,
+                .g = 128,
+                .b = 128
+            },
+            .p_gamma_correction =
+            (display_gamma_correction_t *) (&g_display_gamma_cfg),  // Pointer to the gamma correction setting
+            .dithering_on = false                               // Dither disable
+        },
+        .p_callback = user_display_callback,                    // Display device callback function pointer
+        .p_context = (void *) &g_display,                       // Keeps display device context
+        .p_extend  = (void *) (&g_display_extend_cfg)           // Attaches display device extended configuration
+    };
+
+    // Initializes the display
+    err = g_display_api.open(&g_display, &display_cfg);
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     ssp_err_t R_GLCD_Start     (display_ctrl_t         * const p_hdl)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Starts the display
+    err = g_display_api.start(&g_display);
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     ssp_err_t R_GLCD_Stop      (display_ctrl_t         * const p_hdl)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Stops the display
+    err = g_display_api.stop(&g_display);
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     R_GLCD_LayerChange (display_ctrl_t const * const p_ctrl, display_runtime_cfg_t const * const p_cfg,
+                               display_frame_layer_t frame)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Creates a configuration structure (You can use the project generater on ISDE to generate this configuration)
+    display_runtime_cfg_t g_display_runtime_cfg_bg = 
+    {
+        .input = 
+        {
+            .p_base  = (uint32_t *)&g_display_fb_foreground[0],
+            .hsize   = 800,
+            .vsize   = 480,
+            .hstride = 800,
+            .format  = DISPLAY_IN_FORMAT_16BITS_RGB565,
+            .line_descending_enable = false,
+            .lines_repeat_enable    = false,
+            .lines_repeat_times     = 0
+        },
+        .layer = 
+        {
+            .coordinate =
+            {
+                .x = 0,
+                .y = 0
+            },
+            .bg_color = 
+            {
+                .byte = 
+                {
+                    .a = 255,
+                    .r = 0,
+                    .g = 0,
+                    .b = 0
+                }
+            },
+            .fade_control = DISPLAY_FADE_CONTROL_FADEIN,            // Performs fade-in effect
+            .fade_speed   = 3                                       // Fade-in takes 3 frames
+        }
+    };
+
+    // Changes the graphics plane2 layer condition
+    err = g_display_api.layerChange(&g_display, &g_display_runtime_cfg_bg, DISPLAY_FRAME_LAYER_2);
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     R_GLCD_ColorCorrection (display_ctrl_t const * const p_ctrl, display_correction_t const * const p_correction)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+    
+    // Creates a display correction structure
+    display_correction_t display_correction =
+    {
+        .brightness = 
+        {
+            .enable = true,
+            .r      = 96,
+            .g      = 96,
+            .b      = 96
+        },
+        .contrast = 
+        {
+            .enable = disable
+        }
+    };
+
+    // Changes the color condition at run-time
+    err = g_display_api.correction(&g_display, &display_correction);
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     R_GLCD_ClutUpdate (display_ctrl_t const * const p_ctrl,
+                             display_clut_cfg_t const * const p_clut_cfg,
+                             display_frame_layer_t frame)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Creates a CLUT buffer for a display interface (You can use the project generater on ISDE to generate this buffer)
+    uint32_t CLUT_buffer[256];
+
+    // Creates CLUT configuration (You can use the project generater on ISDE to generate this buffer)
+    display_clut_cfg_t g_display_clut_cfg_glcd =
+    {
+        .p_base = (uint32_t *)CLUT_buffer,
+        .start  = 0,            // Number of start CLUT entry to be updated in GLCDC
+        .size   = 256           // Number of CLUT entries to be updated in GLCDC
+    };
+    
+    // Edits CLUT buffer...
+
+    // Updates CLUT buffer for the graphics plane1 in the GLCDC module
+    err = g_display_api.clut(&g_display, &g_display_clut_cfg_glcd, DISPLAY_FRAME_LAYER_1);
+
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     R_GLCD_StatusGet (display_ctrl_t const *const p_ctrl, display_status_t * const p_status)
+ * 
+ * @code{.c}
+    // Example code
+    // The scenario of this example code is below.
+    // - Supposed to show the graphics plane2 layer with performing fade-in
+    // - Change the graphics plane2 layer condition by R_GLCD_LayerChange()
+    // - While the fade-in transition is being held, repeatedly get the status of fade-in transition
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+
+    // Creates status structure
+    display_status_t status;
+
+    g_display_runtime_cfg_bg.layer.fade_control = DISPLAY_FADE_CONTROL_FADEIN;         // Performs fade-in effect
+    err = R_GLCD_LayerChange(&g_display, &g_display_runtime_cfg_fg, DISPLAY_FRAME_LAYER_2);
+
+    // Gets current status and wait until R_GLCD_StatusGet() returns DISPLAY_FADE_STATUS_NOT_UNDERWAY
+    while (DISPLAY_FADE_STATUS_NOT_UNDERWAY != status.fade_status[DISPLAY_FRAME_LAYER_2])
+    {
+        g_display_api.statusGet(&disp_ctrl, &status);
+        tx_thread_sleep(1);
+    }
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     ssp_err_t R_GLCD_Close (display_ctrl_t * const p_ctrl)
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable for the error
+    ssp_err_t   err;
+    
+    // Closes the display
+    err = g_display_api.close(&g_display);
+    
+ * @endcode
+***********************************************************************************************************************/
+
+/*******************************************************************************************************************//**
+ * @fn     ssp_err_t R_GLCD_VersionGet  ( ssp_version_t *  p_version )
+ * 
+ * @code{.c}
+    // Example code
+    
+    // Creates a variable the version is got
+    ssp_version_t version;
+    
+    // Gets the version of GLCD module
+    g_display_api.versionGet(&version);
+
+ * @endcode
+***********************************************************************************************************************/

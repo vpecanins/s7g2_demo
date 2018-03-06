@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<synergyConfiguration version="3">
+  <synergyBspConfiguration>
+    <config id="config.bsp.s7g2.R7FS7G27H3A01CFC">
+      <property id="config.bsp.part_number" value="config.bsp.part_number.value"/>
+      <property id="config.bsp.rom_size_bytes" value="config.bsp.rom_size_bytes.value"/>
+      <property id="config.bsp.ram_size_bytes" value="config.bsp.ram_size_bytes.value"/>
+      <property id="config.bsp.data_flash_size_bytes" value="config.bsp.data_flash_size_bytes.value"/>
+      <property id="config.bsp.package_style" value="config.bsp.package_style.value"/>
+      <property id="config.bsp.package_pins" value="config.bsp.package_pins.value"/>
+    </config>
+    <config id="config.bsp.s7g2">
+      <property id="config.bsp.series" value="config.bsp.series.value"/>
+    </config>
+    <config id="config.bsp.s7g2.ssp">
+      <property id="config.bsp.s7g2.ssp.OFS0" value="config.bsp.s7g2.ssp.OFS0_Register.default"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_start_mode" value="config.bsp.s7g2.ssp.OFS0.iwdt_start_mode.disabled"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_timeout" value="config.bsp.s7g2.ssp.OFS0.iwdt_timeout.2048"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_divisor" value="config.bsp.s7g2.ssp.OFS0.iwdt_divisor.128"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_window_end" value="config.bsp.s7g2.ssp.OFS0.iwdt_window_end.0"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_window_start" value="config.bsp.s7g2.ssp.OFS0.iwdt_window_start.100"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_reset_interrupt" value="config.bsp.s7g2.ssp.OFS0.iwdt_reset_interrupt.Reset"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.iwdt_stop_control" value="config.bsp.s7g2.ssp.OFS0.iwdt_stop_control.stops"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_start_mode" value="config.bsp.s7g2.ssp.OFS0.wdt_start_mode.register"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_timeout" value="config.bsp.s7g2.ssp.OFS0.wdt_timeout.16384"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_divisor" value="config.bsp.s7g2.ssp.OFS0.wdt_divisor.128"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_window_end" value="config.bsp.s7g2.ssp.OFS0.wdt_window_end.0"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_window_start" value="config.bsp.s7g2.ssp.OFS0.wdt_window_start.100"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_reset_interrupt" value="config.bsp.s7g2.ssp.OFS0.wdt_reset_interrupt.Reset"/>
+      <property id="config.bsp.s7g2.ssp.OFS0.wdt_stop_control" value="config.bsp.s7g2.ssp.OFS0.wdt_stop_control.stops"/>
+      <property id="config.bsp.s7g2.ssp.OFS1" value="config.bsp.s7g2.ssp.OFS1_Register.default"/>
+      <property id="config.bsp.s7g2.ssp.OFS1.voltage_detection0.start" value="config.bsp.s7g2.ssp.OFS1.voltage_detection0.start.disabled"/>
+      <property id="config.bsp.s7g2.ssp.OFS1.voltage_detection0_level" value="config.bsp.s7g2.ssp.OFS1.voltage_detection0_level.280"/>
+      <property id="config.bsp.s7g2.ssp.OFS1.hoco_osc" value="config.bsp.s7g2.ssp.OFS1.hoco_osc.disabled"/>
+    </config>
+    <config id="config.bsp.synergy">
+      <property id="config.bsp.common.main" value="0x1000"/>
+      <property id="config.bsp.common.process" value="0"/>
+      <property id="config.bsp.common.heap" value="0x1000"/>
+      <property id="config.bsp.common.vcc" value="3300"/>
+      <property id="config.bsp.common.checking" value="config.bsp.common.checking.enabled"/>
+      <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
+      <property id="config.bsp.common.error_log" value="config.bsp.common.error_log.none"/>
+      <property id="config.bsp.common.id1" value="0xFFFFFFFF"/>
+      <property id="config.bsp.common.id2" value="0xFFFFFFFF"/>
+      <property id="config.bsp.common.id3" value="0xFFFFFFFF"/>
+      <property id="config.bsp.common.id4" value="0xFFFFFFFF"/>
+    </config>
+  </synergyBspConfiguration>
+  <synergyClockConfiguration>
+    <node id="board.clock.xtal.freq" mul="24000000" option="_edit"/>
+    <node id="board.clock.pll.source" option="board.clock.pll.source.xtal"/>
+    <node id="board.clock.hoco.freq" option="board.clock.hoco.freq.20m"/>
+    <node id="board.clock.loco.freq" option="board.clock.loco.freq.32768"/>
+    <node id="board.clock.moco.freq" option="board.clock.moco.freq.8m"/>
+    <node id="board.clock.subclk.freq" option="board.clock.subclk.freq.32768"/>
+    <node id="board.clock.pll.div" option="board.clock.pll.div.2"/>
+    <node id="board.clock.pll.mul" option="board.clock.pll.mul.200"/>
+    <node id="board.clock.pll.display" option="board.clock.pll.display.value"/>
+    <node id="board.clock.clock.source" option="board.clock.clock.source.pll"/>
+    <node id="board.clock.iclk.div" option="board.clock.iclk.div.1"/>
+    <node id="board.clock.iclk.display" option="board.clock.iclk.display.value"/>
+    <node id="board.clock.pclka.div" option="board.clock.pclka.div.2"/>
+    <node id="board.clock.pclka.display" option="board.clock.pclka.display.value"/>
+    <node id="board.clock.pclkb.div" option="board.clock.pclkb.div.4"/>
+    <node id="board.clock.pclkb.display" option="board.clock.pclkb.display.value"/>
+    <node id="board.clock.pclkc.div" option="board.clock.pclkc.div.4"/>
+    <node id="board.clock.pclkc.display" option="board.clock.pclkc.display.value"/>
+    <node id="board.clock.pclkd.div" option="board.clock.pclkd.div.2"/>
+    <node id="board.clock.pclkd.display" option="board.clock.pclkd.display.value"/>
+    <node id="board.clock.sdclkout.div" option="board.clock.sdclkout.div.1"/>
+    <node id="board.clock.sdclkout.display" option="board.clock.sdclkout.display.value"/>
+    <node id="board.clock.bclk.div" option="board.clock.bclk.div.2"/>
+    <node id="board.clock.bclk.display" option="board.clock.bclk.display.value"/>
+    <node id="board.clock.bclkout.div" option="board.clock.bclkout.div.2"/>
+    <node id="board.clock.bclkout.display" option="board.clock.bclkout.display.value"/>
+    <node id="board.clock.uclk.div" option="board.clock.uclk.div.5"/>
+    <node id="board.clock.uclk.display" option="board.clock.uclk.display.value"/>
+    <node id="board.clock.fclk.div" option="board.clock.fclk.div.4"/>
+    <node id="board.clock.fclk.display" option="board.clock.fclk.display.value"/>
+  </synergyClockConfiguration>
+  <synergyPinConfiguration>
+    <pincfg active="true" name="ARIS7.pincfg" symbol="g_bsp_pin_cfg"/>
+  </synergyPinConfiguration>
+</synergyConfiguration>

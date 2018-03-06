@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<synergyModuleDescription>
+	<config id="config.framework.sf_wifi_onchip_stack_gt202" path="ssp_cfg/framework/sf_wifi_onchip_stack_gt202_cfg.h" version="0">
+		
+		<property default="config.framework.sf_wifi_onchip_stack_gt202.param_checking_enable.bsp" display="Parameter Checking" id="module.framework.sf_wifi_onchip_stack_gt202.param_checking_enable">
+			<option display="Default (BSP)" id="config.framework.sf_wifi_onchip_stack_gt202.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)"/>
+			<option display="Enabled" id="module.framework.sf_wifi_onchip_stack_gt202.param_checking_enable.enabled" value="(1)"/>
+			<option display="Disabled" id="module.framework.sf_wifi_onchip_stack_gt202.param_checking_enable.disabled" value="(0)"/>
+		</property>
+		<content>
+		#ifndef SF_WIFI_ONCHIP_STACK_GT202_CFG_PARAM_CHECKING_ENABLE
+		#define SF_WIFI_ONCHIP_STACK_GT202_CFG_PARAM_CHECKING_ENABLE ${module.framework.sf_wifi_onchip_stack_gt202.param_checking_enable}
+		#endif
+		</content>
+	</config>
+	<module config="config.framework.sf_wifi_onchip_stack_gt202" display="Framework|Networking|Wi-Fi|[SUPERSEDED] ${module.framework.sf_wifi_onchip_stack.name} On-Chip Stack on GT202 Wi-Fi Framework" id="module.framework.sf_wifi_onchip_stack_gt202" version="1">
+		<constraint display="Requires On-Chip Stack Support Enabled on ${module.framework.sf_wifi.name}">
+            "${config.framework.sf_wifi.onchip_stack_support_gt202}" != "config.framework.sf_wifi.onchip_stack_support.disabled"
+        </constraint>
+		<requires interface="_rtos" />
+		<requires id="module.framework.sf_wifi_onchip_stack.requires.sf_wifi" interface="interface.framework.sf_wifi_gt202" display="Add Wi-Fi Device Driver">
+			<override property="module.framework.sf_wifi.p_callback" value= "NULL"/>
+		</requires>
+		<provides interface="interface.framework.sf_wifi_onchip_stack" />
+		<provides interface="interface.framework.sf_wifi_onchip_stack_on_sf_wifi_onchip_stack_gt202" />
+		<provides interface="interface.framework.sf_wifi_onchip_stack.${module.framework.sf_wifi_onchip_stack.name}" />
+		<property default="g_sf_wifi_onchip_stack${_instance}" display="Name" id="module.framework.sf_wifi_onchip_stack.name" >
+			<constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_wifi_onchip_stack.name}")</constraint>
+        </property>
+		<header>
+		/** sf_wifi_onchip_stack_gt202 instance on GT202 */
+		extern sf_wifi_onchip_stack_instance_t ${module.framework.sf_wifi_onchip_stack.name};
+		</header>
+	<includes>#include &quot;sf_wifi_api.h&quot;
+	#include &quot;sf_wifi_gt202_onchip_stack.h&quot;</includes>
+	<declarations>
+/***********************************************************************************************************************
+ * Wi-Fi On-Chip stack Instance
+ **********************************************************************************************************************/
+/** Control structure for On-Chip GT202 stack */
+static sf_wifi_onchip_stack_ctrl_t ${module.framework.sf_wifi_onchip_stack.name}_ctrl;
+
+/** Configuration structure for On-Chip GT202 stack */
+static const sf_wifi_onchip_stack_cfg_t ${module.framework.sf_wifi_onchip_stack.name}_cfg =
+{
+  .p_lower_lvl_wifi = &amp;${module.framework.sf_wifi_onchip_stack.requires.sf_wifi::module.framework.sf_wifi.name},
+};
+
+sf_wifi_onchip_stack_instance_t ${module.framework.sf_wifi_onchip_stack.name} =
+{
+  .p_ctrl = &amp;${module.framework.sf_wifi_onchip_stack.name}_ctrl,
+  .p_cfg  = &amp;${module.framework.sf_wifi_onchip_stack.name}_cfg,
+  .p_api  = &amp;g_sf_wifi_onchip_stack_on_sf_wifi_onchip_stack_gt202
+};
+	</declarations>
+	</module>
+</synergyModuleDescription>

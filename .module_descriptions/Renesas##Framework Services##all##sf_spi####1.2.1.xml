@@ -1,0 +1,338 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<synergyModuleDescription>
+   <!-- SPI Bus XML START here-->
+   <config id="config.framework.sf_spi_bus" path="ssp_cfg/framework/sf_spi_cfg.h" version="0">
+      <property default="config.framework.sf_spi_bus.param_checking_enable.bsp" display="Parameter Checking" id="config.framework.sf_spi_bus.param_checking_enable">
+         <option display="Default (BSP)" id="config.framework.sf_spi_bus.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)" />
+         <option display="Enabled" id="config.framework.sf_spi_bus.param_checking_enable.enabled" value="(1)" />
+         <option display="Disabled" id="config.framework.sf_spi_bus.param_checking_enable.disabled" value="(0)" />
+      </property>
+      <content>#define SF_SPI_CFG_PARAM_CHECKING_ENABLE ${config.framework.sf_spi_bus.param_checking_enable}</content>
+   </config>
+   <module config="config.framework.sf_spi_bus" display="Framework|Connectivity|[SUPERSEDED]${module.framework.sf_spi_bus.name} SPI Framework Shared Bus on sf_spi" id="module.framework.sf_spi_bus_on_sf_spi" common="100" version="1">
+       <constraint display="Module instances must have unique names">
+           "${interface.framework.sf_spi_bus.${module.framework.sf_spi_bus.name}}" === "1"
+       </constraint>
+       <requires interface="_rtos" />
+        <provides interface="interface.framework.sf_spi_bus" />
+        <provides interface="interface.framework.sf_spi_bus_on_sf_spi_bus" />
+        <provides interface="interface.framework.sf_spi_bus.${module.framework.sf_spi_bus.name}" />
+      <property default="g_sf_spi_bus${_instance}" display="Name" id="module.framework.sf_spi_bus.name">
+         <constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_spi_bus.name}")</constraint>
+      </property>
+      <property id="module.framework.sf_spi_bus.spi_interface" display="SPI Implementation" default="module.framework.sf_spi_bus.spi_interface.sci">
+         <option display="SCI SPI" id="module.framework.sf_spi_bus.spi_interface.sci" value="sci" />
+         <option display="SPI" id="module.framework.sf_spi_bus.spi_interface.rspi" value="rspi"/>
+      </property>
+      <property default="0" display="Channel" id="module.framework.sf_spi_bus.channel">
+         <constraint display="Value must be an integer between 0 and 9">testInteger("${module.framework.sf_spi_bus.channel}")  &amp;&amp; ("${module.framework.sf_spi_bus.channel}" &gt;= 0) &amp;&amp; ("${module.framework.sf_spi_bus.channel}" &lt;= 9)</constraint>
+      </property>
+      <property default="module.framework.sf_spi_bus.deprecation_warning.enabled" display="Show deprecation warning" id="module.framework.sf_spi_bus.deprecation_warning">
+         <option display="Enabled" id="module.framework.sf_spi_bus.deprecation_warning.enabled" value="0"/>
+         <option display="Disabled" id="module.framework.sf_spi_bus.deprecation_warning.disabled" value="1"/>
+      </property>
+      <header>
+	        extern sf_spi_bus_t ${module.framework.sf_spi_bus.name};
+			extern const spi_api_t g_spi_on_${module.framework.sf_spi_bus.spi_interface};
+	  </header>
+      <includes>
+	  #include "r_cgc_api.h"
+	  #include "r_spi_api.h"
+	  #include "sf_spi.h"
+	  #include "sf_spi_api.h"
+	  </includes>
+      <declarations>
+        static TX_MUTEX             sf_bus_mutex_${module.framework.sf_spi_bus.name};
+		static TX_EVENT_FLAGS_GROUP sf_bus_eventflag_${module.framework.sf_spi_bus.name};
+		static sf_spi_ctrl_t      * p_sf_curr_ctrl_${module.framework.sf_spi_bus.name}; 
+		
+		sf_spi_bus_t ${module.framework.sf_spi_bus.name} =
+		{
+			.p_bus_name       = (uint8_t *)"${module.framework.sf_spi_bus.name}",
+			.channel          = ${module.framework.sf_spi_bus.channel},
+			.freq_hz_min      = 0,
+			.p_lock_mutex     = &amp;sf_bus_mutex_${module.framework.sf_spi_bus.name},
+			.p_sync_eventflag = &amp;sf_bus_eventflag_${module.framework.sf_spi_bus.name},
+			.pp_curr_ctrl     = (sf_spi_ctrl_t **)&amp;p_sf_curr_ctrl_${module.framework.sf_spi_bus.name},
+			.p_lower_lvl_api  = (spi_api_t *)&amp;g_spi_on_${module.framework.sf_spi_bus.spi_interface},
+			.device_count     = 0,
+		};
+      </declarations>
+   </module>
+   <!-- SPI Bus XML END here-->
+   <!-- SPI Framework XML START here-->
+   <config id="config.framework.sf_spi" path="ssp_cfg/framework/sf_spi_cfg.h" version="0">
+      <property default="config.framework.sf_spi.param_checking_enable.bsp" display="Parameter Checking" id="config.framework.sf_spi.param_checking_enable">
+         <option display="Default (BSP)" id="config.framework.sf_spi.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)" />
+         <option display="Enabled" id="config.framework.sf_spi.param_checking_enable.enabled" value="(1)" />
+         <option display="Disabled" id="config.framework.sf_spi.param_checking_enable.disabled" value="(0)" />
+      </property>
+      <content>#define SF_SPI_CFG_PARAM_CHECKING_ENABLE ${config.framework.sf_spi.param_checking_enable}</content>
+   </config>
+   <module config="config.framework.sf_spi" display="Framework|Connectivity|[SUPERSEDED] ${module.framework.sf_spi.name} SPI Framework Device on sf_spi" id="module.framework.sf_spi_on_sf_spi" version="1">
+        <constraint display="Module instances must have unique names">
+            "${interface.framework.sf_spi.${module.framework.sf_spi.name}}" === "1"
+        </constraint>
+        <requires interface="_rtos" />
+        <requires id="module.framework.sf_spi_on_sf_spi.requires.spi" interface="interface.driver.spi" display="Add SPI Driver" />
+        <requires id="module.framework.sf_spi_on_sf_spi.requires.sf_spi_bus" interface="interface.framework.sf_spi_bus" display="Add SPI Framework Shared Bus" />        
+       <provides interface="interface.framework.sf_spi" />
+       <provides interface="interface.framework.sf_spi_on_sf_spi" />
+       <provides interface="interface.framework.sf_spi.${module.framework.sf_spi.name}" />
+      <property default="g_sf_spi_device${_instance}" display="Name" id="module.framework.sf_spi.name">
+         <constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_spi.name}")</constraint>
+      </property>    
+      <property display="Chip Select Port" id="module.framework.sf_spi.chipselect_port" default="module.framework.sf_spi.chipselect_port.PORT_00">
+         <option id="module.framework.sf_spi.chipselect_port.PORT_00" display="00" value="00" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_01" display="01" value="01" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_02" display="02" value="02" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_03" display="03" value="03" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_04" display="04" value="04" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_05" display="05" value="05" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_06" display="06" value="06" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_07" display="07" value="07" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_08" display="08" value="08" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_09" display="09" value="09" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_10" display="10" value="10" />
+         <option id="module.framework.sf_spi.chipselect_port.PORT_11" display="11" value="11" />
+      </property>
+      <property display="Chip Select Pin" id="module.framework.sf_spi.chipselect_pin" default="module.framework.sf_spi.chipselect_pin.PIN_00">
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_00" display="00" value="00" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_01" display="01" value="01" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_02" display="02" value="02" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_03" display="03" value="03" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_04" display="04" value="04" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_05" display="05" value="05" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_06" display="06" value="06" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_07" display="07" value="07" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_08" display="08" value="08" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_09" display="09" value="09" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_10" display="10" value="10" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_11" display="11" value="11" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_12" display="12" value="12" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_13" display="13" value="13" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_14" display="14" value="14" />
+         <option id="module.framework.sf_spi.chipselect_pin.PIN_15" display="15" value="15" />
+      </property>
+      <property display="Chip Select Active Level" id="module.framework.sf_spi.chipselectactive" default="module.framework.sf_spi.chipselectactive.low">
+         <option id="module.framework.sf_spi.chipselectactive.low" display="Low" value="IOPORT_LEVEL_LOW" />
+         <option id="module.framework.sf_spi.chipselectactive.high" display="High" value="IOPORT_LEVEL_HIGH" />
+      </property>
+      <property default="module.framework.sf_spi.deprecation_warning.enabled" display="Show deprecation warning" id="module.framework.sf_spi.deprecation_warning">
+           <option display="Enabled" id="module.framework.sf_spi.deprecation_warning.enabled" value="0"/>
+            <option display="Disabled" id="module.framework.sf_spi.deprecation_warning.disabled" value="1"/>
+        </property>
+      <header>
+            /* SF SPI on SF SPI Instance. */
+	         extern const sf_spi_instance_t ${module.framework.sf_spi.name};
+      </header>
+      <includes>#include "sf_spi.h"
+			#include "sf_spi_api.h"</includes>
+      <declarations>sf_spi_instance_ctrl_t ${module.framework.sf_spi.name}_ctrl =
+			{
+				.p_lower_lvl_ctrl = &amp;${module.framework.sf_spi_on_sf_spi.requires.spi::module.driver.spi.name}_ctrl,
+			};
+			const sf_spi_cfg_t ${module.framework.sf_spi.name}_cfg =
+			{
+				.p_bus                    = (sf_spi_bus_t *)&amp;${module.framework.sf_spi_on_sf_spi.requires.sf_spi_bus::module.framework.sf_spi_bus.name},
+				.chip_select              = IOPORT_PORT_${module.framework.sf_spi.chipselect_port}_PIN_${module.framework.sf_spi.chipselect_pin},
+				.chip_select_level_active = ${module.framework.sf_spi.chipselectactive},
+				.p_lower_lvl_cfg          = &amp;${module.framework.sf_spi_on_sf_spi.requires.spi::module.driver.spi.name}_cfg,
+			};
+         /* Instance structure to use this module. */
+         const sf_spi_instance_t ${module.framework.sf_spi.name} = 
+         {
+             .p_ctrl        = &amp;${module.framework.sf_spi.name}_ctrl,
+             .p_cfg         = &amp;${module.framework.sf_spi.name}_cfg,
+             .p_api         = &amp;g_sf_spi_on_sf_spi
+         };
+      </declarations>
+   </module>
+   <!-- SPI Framework XML END here-->
+  
+   <!-- Version 2 XMLs -->
+   <!-- SPI Bus XML V2 START here-->
+   <module config="config.framework.sf_spi_bus_v2" display="Framework|Connectivity|${module.framework.sf_spi_bus_v2.name} SPI Framework Shared Bus on sf_spi" id="module.framework.sf_spi_bus_v2_on_sf_spi_v2" common="100" version="1">
+       <constraint display="Module instances must have unique names">
+           "${interface.framework.sf_spi_bus_v2.${module.framework.sf_spi_bus_v2.name}}" === "1"
+       </constraint>
+       <requires interface="_rtos" />
+       <requires id="module.framework.sf_spi_v2_on_sf_spi.requires.spi" interface="interface.driver.spi" display="Add SPI Driver" >
+  		<override property="module.driver.spi.clk_phase" value="${module.framework.sf_spi_bus_v2.clk_phase}"/>
+		<override property="module.driver.spi.clk_polarity" value="${module.framework.sf_spi_bus_v2.clk_polarity}"/>
+            	<override property="module.driver.spi.p_callback" value="NULL"/>
+       </requires>     
+        <provides interface="interface.framework.sf_spi_bus_v2" />
+        <provides interface="interface.framework.sf_spi_bus_v2_on_sf_spi_bus" />
+        <provides interface="interface.framework.sf_spi_bus_v2.${module.framework.sf_spi_bus_v2.name}" />
+      <property default="g_sf_spi_bus${_instance}" display="Name" id="module.framework.sf_spi_bus_v2.name">
+         <constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_spi_bus_v2.name}")</constraint>
+      </property>
+      <header>
+        extern sf_spi_bus_t ${module.framework.sf_spi_bus_v2.name};
+        extern spi_api_t const g_spi_on_${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.spi_interface};
+			
+        #define ${module.framework.sf_spi_bus_v2.name}_CHANNEL        (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.channel})
+        #define ${module.framework.sf_spi_bus_v2.name}_OPERATING_MODE (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.operating_mode})
+        #define ${module.framework.sf_spi_bus_v2.name}_CLK_PHASE      (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.clk_phase})
+        #define ${module.framework.sf_spi_bus_v2.name}_CLK_POLARITY   (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.clk_polarity})          
+        #define ${module.framework.sf_spi_bus_v2.name}_MODE_FAULT     (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.mode_fault})
+        #define ${module.framework.sf_spi_bus_v2.name}_BIT_ORDER      (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.bit_order})          
+        #define ${module.framework.sf_spi_bus_v2.name}_BIT_RATE       (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.bitrate})  
+        #define ${module.framework.sf_spi_bus_v2.name}_P_CALLBACK     (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.p_callback})
+        #define ${module.framework.sf_spi_bus_v2.name}_P_CONTEXT      (&amp;${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.name})
+        #define ${module.framework.sf_spi_bus_v2.name}_RXI_IPL        (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.rxi_ipl})
+        #define ${module.framework.sf_spi_bus_v2.name}_TXI_IPL        (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.txi_ipl})
+        #define ${module.framework.sf_spi_bus_v2.name}_TEI_IPL        (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.tei_ipl})            
+        #define ${module.framework.sf_spi_bus_v2.name}_ERI_IPL        (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.eri_ipl})
+
+        /** These are obtained by macros in the SPI driver XMLs. */
+        #define ${module.framework.sf_spi_bus_v2.name}_P_TRANSFER_TX  (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.name}_P_TRANSFER_TX)
+        #define ${module.framework.sf_spi_bus_v2.name}_P_TRANSFER_RX  (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.name}_P_TRANSFER_RX)            
+        #define ${module.framework.sf_spi_bus_v2.name}_P_EXTEND       (${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.name}_P_EXTEND)            
+			
+	  </header>
+      <includes>
+	  #include "r_cgc_api.h"
+	  #include "r_spi_api.h"
+	  #include "sf_spi.h"
+	  #include "sf_spi_api.h"
+	  </includes>
+      <declarations>
+        static TX_MUTEX             sf_bus_mutex_${module.framework.sf_spi_bus_v2.name};
+		static TX_EVENT_FLAGS_GROUP sf_bus_eventflag_${module.framework.sf_spi_bus_v2.name};
+		static sf_spi_ctrl_t      * p_sf_curr_ctrl_${module.framework.sf_spi_bus_v2.name}; 
+		
+		sf_spi_bus_t ${module.framework.sf_spi_bus_v2.name} =
+		{
+			.p_bus_name       = (uint8_t *)"${module.framework.sf_spi_bus_v2.name}",
+			.channel          = ${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.channel}, 
+			.freq_hz_min      = 0,
+			.p_lock_mutex     = &amp;sf_bus_mutex_${module.framework.sf_spi_bus_v2.name},
+			.p_sync_eventflag = &amp;sf_bus_eventflag_${module.framework.sf_spi_bus_v2.name},
+			.pp_curr_ctrl     = (sf_spi_ctrl_t **)&amp;p_sf_curr_ctrl_${module.framework.sf_spi_bus_v2.name},
+			.p_lower_lvl_api  = (spi_api_t *)&amp;g_spi_on_${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.spi_interface},
+			.device_count     = 0,
+		};
+      </declarations>
+   </module>
+   <!-- SPI Bus XML END here-->
+   
+   <!-- SPI Framework XML START here-->
+    <config id="config.framework.sf_spi_v2" path="ssp_cfg/framework/sf_spi_cfg.h" version="0">
+      <property default="config.framework.sf_spi_v2.param_checking_enable.bsp" display="Parameter Checking" id="config.framework.sf_spi_v2.param_checking_enable">
+         <option display="Default (BSP)" id="config.framework.sf_spi_v2.param_checking_enable.bsp" value="(BSP_CFG_PARAM_CHECKING_ENABLE)" />
+         <option display="Enabled" id="config.framework.sf_spi_v2.param_checking_enable.enabled" value="(1)" />
+         <option display="Disabled" id="config.framework.sf_spi_v2.param_checking_enable.disabled" value="(0)" />
+      </property>
+      <content>#define SF_SPI_CFG_PARAM_CHECKING_ENABLE ${config.framework.sf_spi_v2.param_checking_enable}</content>
+    </config>
+   <module config="config.framework.sf_spi_v2" display="Framework|Connectivity|${module.framework.sf_spi_v2.name} SPI Framework Device on sf_spi" id="module.framework.sf_spi_v2_on_sf_spi" version="1">
+        <constraint display="Module instances must have unique names">
+            "${interface.framework.sf_spi_v2.${module.framework.sf_spi_v2.name}}" === "1"
+        </constraint>
+        <requires interface="_rtos" />
+        <requires id="module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2" interface="interface.framework.sf_spi_bus_v2" display="Add SPI Framework Shared Bus" />        
+       <provides interface="interface.framework.sf_spi_v2" />
+       <provides interface="interface.framework.sf_spi_v2_on_sf_spi" />
+       <provides interface="interface.framework.sf_spi_v2.${module.framework.sf_spi_v2.name}" />
+       <property default="g_sf_spi_device${_instance}" display="Name" id="module.framework.sf_spi_v2.name">
+         <constraint display="Name must be a valid C symbol">testSymbol("${module.framework.sf_spi_v2.name}")</constraint>
+       </property>    	   
+       <property default="module.framework.sf_spi_v2.clk_phase.clk_phase_edge_odd" display="Clock Phase" id="module.framework.sf_spi_v2.clk_phase">
+         <option display="Data sampling on odd edge, data variation on even edge" id="module.framework.sf_spi_v2.clk_phase.clk_phase_edge_odd" value="SPI_CLK_PHASE_EDGE_ODD"/>
+	 <option display="Data sampling on even edge, data variation on odd edge" id="module.framework.sf_spi_v2.clk_phase.clk_phase_edge_even" value="SPI_CLK_PHASE_EDGE_EVEN"/>
+       </property>
+       <property default="module.framework.sf_spi_v2.clk_polarity.clk_polarity_low" display="Clock Polarity" id="module.framework.sf_spi_v2.clk_polarity">
+ 	 <option display="Low when idle" id="module.framework.sf_spi_v2.clk_polarity.clk_polarity_low" value="SPI_CLK_POLARITY_LOW"/>
+	 <option display="High when idle" id="module.framework.sf_spi_v2.clk_polarity.clk_polarity_high" value="SPI_CLK_POLARITY_HIGH"/>
+       </property> 	   
+      <property display="Chip Select Port" id="module.framework.sf_spi_v2.chipselect_port" default="module.framework.sf_spi_v2.chipselect_port.PORT_00">
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_00" display="00" value="00" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_01" display="01" value="01" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_02" display="02" value="02" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_03" display="03" value="03" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_04" display="04" value="04" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_05" display="05" value="05" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_06" display="06" value="06" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_07" display="07" value="07" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_08" display="08" value="08" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_09" display="09" value="09" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_10" display="10" value="10" />
+         <option id="module.framework.sf_spi_v2.chipselect_port.PORT_11" display="11" value="11" />
+      </property>
+      <property display="Chip Select Pin" id="module.framework.sf_spi_v2.chipselect_pin" default="module.framework.sf_spi_v2.chipselect_pin.PIN_00">
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_00" display="00" value="00" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_01" display="01" value="01" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_02" display="02" value="02" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_03" display="03" value="03" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_04" display="04" value="04" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_05" display="05" value="05" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_06" display="06" value="06" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_07" display="07" value="07" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_08" display="08" value="08" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_09" display="09" value="09" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_10" display="10" value="10" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_11" display="11" value="11" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_12" display="12" value="12" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_13" display="13" value="13" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_14" display="14" value="14" />
+         <option id="module.framework.sf_spi_v2.chipselect_pin.PIN_15" display="15" value="15" />
+      </property>
+      <property display="Chip Select Active Level" id="module.framework.sf_spi_v2.chipselectactive" default="module.framework.sf_spi_v2.chipselectactive.low">
+         <option id="module.framework.sf_spi_v2.chipselectactive.low" display="Low" value="IOPORT_LEVEL_LOW" />
+         <option id="module.framework.sf_spi_v2.chipselectactive.high" display="High" value="IOPORT_LEVEL_HIGH" />
+      </property>
+      <header>
+      /* SF SPI on SF SPI Instance. */
+      extern const sf_spi_instance_t ${module.framework.sf_spi_v2.name};
+      </header>
+      <includes>
+      #include "sf_spi.h"
+      #include "sf_spi_api.h"
+      </includes>
+      <declarations>
+/** Get driver cfg from bus and use all same settings except slave address and addressing mode. */
+const spi_cfg_t ${module.framework.sf_spi_v2.name}_spi_cfg =
+{
+    .channel             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_CHANNEL,        
+    .operating_mode      = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_OPERATING_MODE,           
+    .clk_phase           = ${module.framework.sf_spi_v2.clk_phase},          
+    .clk_polarity        = ${module.framework.sf_spi_v2.clk_polarity},          
+    .mode_fault          = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_MODE_FAULT,     
+    .bit_order           = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_BIT_ORDER,     
+    .bitrate             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_BIT_RATE,     
+    .p_transfer_tx       = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_P_TRANSFER_TX,  
+    .p_transfer_rx       = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_P_TRANSFER_RX,  
+    .p_callback          = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_P_CALLBACK,     
+    .p_context           = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_P_CONTEXT,      
+    .rxi_ipl             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_RXI_IPL,        
+    .txi_ipl             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_TXI_IPL,        
+    .tei_ipl             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_TEI_IPL,        
+    .eri_ipl             = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_ERI_IPL,        
+    .p_extend            = ${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name}_P_EXTEND,       
+};
+	  
+sf_spi_instance_ctrl_t ${module.framework.sf_spi_v2.name}_ctrl =
+{
+    .p_lower_lvl_ctrl = &amp;${module.framework.sf_spi_v2_on_sf_spi.requires.spi::module.driver.spi.name}_ctrl,
+};
+
+const sf_spi_cfg_t ${module.framework.sf_spi_v2.name}_cfg =
+{
+    .p_bus                    = (sf_spi_bus_t *)&amp;${module.framework.sf_spi_v2_on_sf_spi.requires.sf_spi_bus_v2::module.framework.sf_spi_bus_v2.name},
+    .chip_select              = IOPORT_PORT_${module.framework.sf_spi_v2.chipselect_port}_PIN_${module.framework.sf_spi_v2.chipselect_pin},
+    .chip_select_level_active = ${module.framework.sf_spi_v2.chipselectactive},
+    .p_lower_lvl_cfg          = &amp;${module.framework.sf_spi_v2.name}_spi_cfg,
+};
+
+/* Instance structure to use this module. */
+const sf_spi_instance_t ${module.framework.sf_spi_v2.name} = 
+{
+    .p_ctrl        = &amp;${module.framework.sf_spi_v2.name}_ctrl,
+    .p_cfg         = &amp;${module.framework.sf_spi_v2.name}_cfg,
+    .p_api         = &amp;g_sf_spi_on_sf_spi
+};
+      </declarations>
+   </module>
+</synergyModuleDescription>
